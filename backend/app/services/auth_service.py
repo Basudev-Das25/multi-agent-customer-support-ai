@@ -1,10 +1,12 @@
 from datetime import UTC, datetime
 
+from bson import ObjectId
+
 from app.core.exception import UserAlreadyExistsError
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.database.collections import get_users_collection
 from app.models.user import UserDocument
-from app.schemas.auth import RegisterRequest
+from app.schemas.auth import LoginRequest, RegisterRequest
 from app.schemas.user import UserResponse
 
 
@@ -15,6 +17,36 @@ async def email_exists(email: str) -> bool:
     users_collection = get_users_collection()
     user = await users_collection.find_one({"email": email})
     return user is not None
+
+
+def _to_user_document(document: dict) -> UserDocument:
+    """Convert a MongoDB user document into the application model."""
+    return UserDocument(
+        id=str(document["_id"]),
+        name=document["name"],
+        email=document["email"],
+        password_hash=document["password_hash"],
+        role=document["role"],
+        is_active=document["is_active"],
+        created_at=document["created_at"],
+        updated_at=document["updated_at"],
+    )
+
+
+async def get_user_by_email(email: str) -> UserDocument | None:
+    """Return a user by email, if one exists."""
+    users_collection = get_users_collection()
+    document = await users_collection.find_one({"email": email})
+    return _to_user_document(document) if document else None
+
+
+async def get_user_by_id(user_id: str) -> UserDocument | None:
+    """Return a user by MongoDB object ID, if one exists."""
+    if not ObjectId.is_valid(user_id):
+        return None
+    users_collection = get_users_collection()
+    document = await users_collection.find_one({"_id": ObjectId(user_id)})
+    return _to_user_document(document) if document else None
 
 
 def _build_user_document(
@@ -76,3 +108,13 @@ async def register_user(
         role=created_user.role,
         is_active=created_user.is_active,
     )
+
+
+async def authenticate_user(request: LoginRequest) -> UserDocument | None:
+    """Authenticate an active user by email and password."""
+    user = await get_user_by_email(str(request.email))
+    if user is None or not user.is_active:
+        return None
+    if not verify_password(request.password, user.password_hash):
+        return None
+    return user
