@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     USERS_COLLECTION: str = "users"
     CONVERSATIONS_COLLECTION: str = "conversations"
-    KNOWLEDGE_COLLECTION: str = "knowledge_base"
+    KNOWLEDGE_COLLECTION: str = "knowledge_documents"
     ANALYTICS_COLLECTION: str = "analytics"
 
     JWT_SECRET_KEY: str = ""
@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str = ""
 
     VECTOR_DB_PATH: str = "./vectorstore"
+
+    UPLOAD_DIRECTORY: str = "storage/uploads/pdfs"
+
+    MAX_UPLOAD_SIZE_MB: int = 20
+
+    ALLOWED_UPLOAD_TYPES: str = "application/pdf"
+    KNOWLEDGE_CHUNKS_COLLECTION: str = "knowledge_chunks"
+    UPLOAD_DIRECTORY: str = "storage/uploads/pdfs"
 
     class Config:
         env_file = ".env"
