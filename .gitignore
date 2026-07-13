@@ -74,6 +74,14 @@ pip-wheel-metadata/
 *.sqlite3
 
 # ==================================================
+# Uploaded files
+# ==================================================
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+!backend/storage/uploads/pdfs/
+!backend/storage/uploads/pdfs/.gitkeep
+
+# ==================================================
 # AI / ML
 # ==================================================
 

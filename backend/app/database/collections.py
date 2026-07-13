@@ -18,3 +18,7 @@ def get_knowledge_collection() -> AsyncCollection:
 
 def get_analytics_collection() -> AsyncCollection:
     return database.get_database()[settings.ANALYTICS_COLLECTION]
+
+
+def get_knowledge_chunks_collection() -> AsyncCollection:
+    return database.get_database()[settings.KNOWLEDGE_CHUNKS_COLLECTION]
