@@ -13,10 +13,16 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     MONGODB_URI: str = ""
+    DATABASE_NAME: str = "customer_support_ai"
+
+    USERS_COLLECTION: str = "users"
+    CONVERSATIONS_COLLECTION: str = "conversations"
+    KNOWLEDGE_COLLECTION: str = "knowledge_base"
+    ANALYTICS_COLLECTION: str = "analytics"
 
     JWT_SECRET_KEY: str = ""
-
     JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     GOOGLE_API_KEY: str = ""
 
