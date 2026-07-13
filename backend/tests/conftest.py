@@ -11,7 +11,23 @@ class InsertOneResult:
         self.inserted_id = inserted_id
 
 
-class InMemoryUsersCollection:
+class InMemoryCursor:
+    def __init__(self, documents: list[dict]):
+        self.documents = documents
+
+    def sort(self, field: str, direction: int) -> "InMemoryCursor":
+        self.documents.sort(key=lambda document: document[field], reverse=direction < 0)
+        return self
+
+    def limit(self, limit: int) -> "InMemoryCursor":
+        self.documents = self.documents[:limit]
+        return self
+
+    async def to_list(self, length: int | None = None) -> list[dict]:
+        return [document.copy() for document in self.documents[:length]]
+
+
+class InMemoryCollection:
     def __init__(self):
         self.documents: list[dict] = []
 
@@ -28,13 +44,33 @@ class InMemoryUsersCollection:
         self.documents.append(stored_document)
         return InsertOneResult(inserted_id)
 
+    async def update_one(self, query: dict, update: dict) -> None:
+        for document in self.documents:
+            if all(document.get(key) == value for key, value in query.items()):
+                for field, value in update.get("$set", {}).items():
+                    document[field] = value
+                for field, operation in update.get("$push", {}).items():
+                    document[field].extend(operation["$each"])
+                return
+
+    def find(self, query: dict) -> InMemoryCursor:
+        return InMemoryCursor(
+            [
+                document.copy()
+                for document in self.documents
+                if all(document.get(key) == value for key, value in query.items())
+            ]
+        )
+
 
 class InMemoryDatabase:
     def __init__(self):
-        self.users = InMemoryUsersCollection()
+        self.collections: dict[str, InMemoryCollection] = {}
 
-    def __getitem__(self, collection_name: str) -> InMemoryUsersCollection:
-        return self.users
+    def __getitem__(self, collection_name: str) -> InMemoryCollection:
+        if collection_name not in self.collections:
+            self.collections[collection_name] = InMemoryCollection()
+        return self.collections[collection_name]
 
 
 @pytest.fixture
