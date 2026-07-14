@@ -76,10 +76,12 @@ pip-wheel-metadata/
 # ==================================================
 # Uploaded files
 # ==================================================
-backend/storage/uploads/*
+backend/storage/uploads
 !backend/storage/uploads/.gitkeep
 !backend/storage/uploads/pdfs/
 !backend/storage/uploads/pdfs/.gitkeep
+backend/storage/faiss/*
+!backend/storage/faiss/.gitkeep
 
 # ==================================================
 # AI / ML

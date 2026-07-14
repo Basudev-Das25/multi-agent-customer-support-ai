@@ -11,8 +11,10 @@ from app.database.collections import (
 from app.models.knowledge import create_document
 from app.schemas.knowledge import KnowledgeDocument
 from app.services.chunking_service import chunking_service
+from app.services.embedding_service import embedding_service
 from app.services.pdf_service import pdf_service
 from app.services.storage_service import storage_service
+from app.services.vector_service import vector_service
 
 
 class KnowledgeService:
@@ -86,9 +88,20 @@ class KnowledgeService:
 
             chunk_collection = get_knowledge_chunks_collection()
 
-            await chunk_collection.insert_many(
+            insert_result = await chunk_collection.insert_many(
                 [chunk.model_dump(exclude={"id"}) for chunk in chunks]
             )
+
+            chunk_ids = [str(chunk_id) for chunk_id in insert_result.inserted_ids]
+
+            embeddings = embedding_service.embed_batch([chunk.text for chunk in chunks])
+
+            vector_service.add(
+                chunk_ids,
+                embeddings,
+            )
+
+            vector_service.save()
 
         # ---------------------------------------------------------
         # Update metadata

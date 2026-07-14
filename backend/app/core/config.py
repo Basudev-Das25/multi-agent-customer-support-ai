@@ -34,7 +34,33 @@ class Settings(BaseSettings):
 
     ALLOWED_UPLOAD_TYPES: str = "application/pdf"
     KNOWLEDGE_CHUNKS_COLLECTION: str = "knowledge_chunks"
-    UPLOAD_DIRECTORY: str = "storage/uploads/pdfs"
+
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+
+    FAISS_INDEX_PATH: str = "storage/faiss"
+
+    TOP_K_RESULTS: int = 5
+
+    OPENROUTER_API_KEY: str = ""
+
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    OPENROUTER_MODEL: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+    FAISS_INDEX_NAME: str = "knowledge.index"
+    FAISS_MAPPING_NAME: str = "mapping.json"
+
+    OPENROUTER_API_KEY: str = ""
+
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    OPENROUTER_MODEL: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+    LLM_TIMEOUT_SECONDS: int = 60
+
+    LLM_MAX_TOKENS: int = 1024
+
+    LLM_TEMPERATURE: float = 0.2
 
     class Config:
         env_file = ".env"
