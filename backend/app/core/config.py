@@ -1,3 +1,6 @@
+from typing import Self
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -33,7 +36,6 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 20
 
     ALLOWED_UPLOAD_TYPES: str = "application/pdf"
-    KNOWLEDGE_CHUNKS_COLLECTION: str = "knowledge_chunks"
 
     EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
 
@@ -50,17 +52,32 @@ class Settings(BaseSettings):
     FAISS_INDEX_NAME: str = "knowledge.index"
     FAISS_MAPPING_NAME: str = "mapping.json"
 
-    OPENROUTER_API_KEY: str = ""
-
-    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-
-    OPENROUTER_MODEL: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
-
     LLM_TIMEOUT_SECONDS: int = 60
 
     LLM_MAX_TOKENS: int = 1024
 
     LLM_TEMPERATURE: float = 0.2
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> Self:
+        """Reject production startup when required credentials are missing."""
+
+        if self.ENVIRONMENT.lower() != "production":
+            return self
+
+        required_secrets = {
+            "JWT_SECRET_KEY": self.JWT_SECRET_KEY,
+            "MONGODB_URI": self.MONGODB_URI,
+            "OPENROUTER_API_KEY": self.OPENROUTER_API_KEY,
+        }
+        missing_secrets = [
+            name for name, value in required_secrets.items() if not value.strip()
+        ]
+        if missing_secrets:
+            raise ValueError(
+                "Missing required production settings: " + ", ".join(missing_secrets)
+            )
+        return self
 
     class Config:
         env_file = ".env"

@@ -1,0 +1,56 @@
+from app.agents.base import BaseAgent
+from app.schemas.chat import AgentResponse, ChatMessage
+from app.services.llm_service import llm_service
+from app.services.prompt_service import prompt_service
+
+
+class ComplaintAgent(BaseAgent):
+
+    name = "complaint"
+
+    SYSTEM_PROMPT = """
+You are a Customer Support specialist.
+
+Your goals:
+
+- Be empathetic.
+- Apologize when appropriate.
+- Help resolve complaints.
+- Escalate only if necessary.
+
+Use the supplied knowledge base whenever possible.
+"""
+
+    async def run(
+        self,
+        *,
+        user_id: str,
+        question: str,
+        history: list[ChatMessage],
+    ) -> AgentResponse:
+
+        from app.services.retrieval_service import retrieval_service
+
+        context, sources = await retrieval_service.build_response(
+            query=question,
+        )
+
+        prompt = prompt_service.build_prompt(
+            question=question,
+            context=context,
+            history=history,
+        )
+
+        answer = await llm_service.generate(
+            prompt=prompt,
+            system_prompt=self.SYSTEM_PROMPT,
+        )
+
+        return AgentResponse(
+            answer=answer,
+            agent_name=self.name,
+            sources=sources,
+        )
+
+
+complaint_agent = ComplaintAgent()

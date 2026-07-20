@@ -16,9 +16,5 @@ def get_knowledge_collection() -> AsyncCollection:
     return database.get_database()[settings.KNOWLEDGE_COLLECTION]
 
 
-def get_analytics_collection() -> AsyncCollection:
-    return database.get_database()[settings.ANALYTICS_COLLECTION]
-
-
-def get_knowledge_chunks_collection() -> AsyncCollection:
-    return database.get_database()[settings.KNOWLEDGE_CHUNKS_COLLECTION]
+def get_dataset_ingestion_collection() -> AsyncCollection:
+    return database.get_database()["dataset_ingestion_log"]

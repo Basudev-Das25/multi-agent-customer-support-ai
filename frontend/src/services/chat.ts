@@ -1,14 +1,38 @@
-import { apiRequest } from "@/services/api";
-import type { Conversation, ConversationSummary } from "@/types/chat";
+import api from "@/services/api";
+import type {
+    Conversation,
+    ConversationSummary,
+} from "@/types/chat";
 
-export const listConversations = () =>
-  apiRequest<ConversationSummary[]>("/chat/conversations");
+export const listConversations = async () => {
+    const response = await api.get<ConversationSummary[]>(
+        "/chat/conversations"
+    );
 
-export const getConversation = (conversationId: string) =>
-  apiRequest<Conversation>(`/chat/conversations/${conversationId}`);
+    return response.data;
+};
 
-export const sendMessage = (content: string, conversationId?: string) =>
-  apiRequest<Conversation>("/chat/messages", {
-    method: "POST",
-    body: JSON.stringify({ content, conversation_id: conversationId }),
-  });
+export const getConversation = async (
+    conversationId: string
+) => {
+    const response = await api.get<Conversation>(
+        `/chat/conversations/${conversationId}`
+    );
+
+    return response.data;
+};
+
+export const sendMessage = async (
+    content: string,
+    conversationId?: string
+) => {
+    const response = await api.post<Conversation>(
+        "/chat/messages",
+        {
+            content,
+            conversation_id: conversationId,
+        }
+    );
+
+    return response.data;
+};

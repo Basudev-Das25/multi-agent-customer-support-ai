@@ -8,11 +8,30 @@ from app.schemas.base import BaseSchema
 MessageRole = Literal["user", "assistant"]
 
 
+class SourceInfo(BaseSchema):
+    """One knowledge source used to answer a question."""
+
+    document_id: str
+    document_name: str
+    text_preview: str
+    score: float
+    page_number: int
+
+
+class AgentResponse(BaseSchema):
+    """Structured response from an agent, including source metadata."""
+
+    answer: str
+    agent_name: str
+    sources: list[SourceInfo]
+
+
 class ChatMessage(BaseSchema):
     id: str
     role: MessageRole
     content: str
     created_at: datetime
+    metadata: dict | None = None
 
 
 class SendMessageRequest(BaseSchema):

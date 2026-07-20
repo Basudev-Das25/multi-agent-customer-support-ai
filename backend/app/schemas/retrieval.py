@@ -2,6 +2,7 @@ from app.schemas.base import BaseSchema
 
 
 class VectorSearchResult(BaseSchema):
+    document_id: str
     chunk_id: str
     score: float
 

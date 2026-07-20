@@ -91,3 +91,29 @@ def test_login_rejects_invalid_password(client):
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect email or password."
+
+
+def test_regular_user_cannot_upload_global_knowledge(client):
+    email = f"upload-{uuid.uuid4().hex[:8]}@example.com"
+    password = "Password123!"
+
+    registration = client.post(
+        "/api/v1/auth/register",
+        json={"name": "Upload User", "email": email, "password": password},
+    )
+    assert registration.status_code == 201
+
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": password},
+    )
+    assert login.status_code == 200
+
+    response = client.post(
+        "/api/v1/knowledge/upload",
+        headers={"Authorization": f"Bearer {login.json()['access_token']}"},
+        files={"file": ("knowledge.pdf", b"not-used", "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Administrator access is required."

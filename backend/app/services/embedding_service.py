@@ -59,4 +59,21 @@ def get_embedding_service() -> EmbeddingService:
     return EmbeddingService()
 
 
-embedding_service = get_embedding_service()
+class LazyEmbeddingService:
+    """Load the embedding model only when embeddings are actually requested."""
+
+    @property
+    def instance(self) -> EmbeddingService:
+        return get_embedding_service()
+
+    def embed(self, text: str) -> np.ndarray:
+        return self.instance.embed(text)
+
+    def embed_batch(self, texts: list[str]) -> np.ndarray:
+        return self.instance.embed_batch(texts)
+
+    def dimension(self) -> int:
+        return self.instance.dimension()
+
+
+embedding_service = LazyEmbeddingService()

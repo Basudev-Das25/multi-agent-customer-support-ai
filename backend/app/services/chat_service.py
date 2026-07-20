@@ -3,15 +3,14 @@ from uuid import uuid4
 
 from bson import ObjectId
 
+from app.core.exception import ConversationNotFoundError
 from app.database.collections import get_conversations_collection
 from app.schemas.chat import (
     ChatMessage,
     ConversationResponse,
     ConversationSummary,
 )
-from app.services.llm_service import llm_service
-from app.services.prompt_service import prompt_service
-from app.services.retrieval_service import retrieval_service
+from app.services.agent_service import agent_service
 
 
 def _conversation_response(document: dict) -> ConversationResponse:
@@ -111,47 +110,35 @@ async def send_message(
 
     conversations = get_conversations_collection()
 
-    document = (
-        await _get_conversation_document(
+    if conversation_id:
+        document = await _get_conversation_document(
             user_id,
             conversation_id,
         )
-        if conversation_id
-        else None
-    )
+        if document is None:
+            raise ConversationNotFoundError(
+                f"Conversation '{conversation_id}' not found."
+            )
+    else:
+        document = None
 
     history = _conversation_history(document)
 
-    context = await retrieval_service.build_context(
-        query=content,
+    agent_response = await agent_service.respond(
         user_id=user_id,
+        question=content,
+        history=history,
     )
-
-    if not context.strip():
-
-        answer = (
-            "I couldn't find any relevant information "
-            "in your uploaded knowledge base."
-        )
-
-    else:
-
-        prompt = prompt_service.build_prompt(
-            question=content,
-            context=context,
-            history=history,
-        )
-
-        answer = await llm_service.generate(
-            prompt=prompt,
-            system_prompt=prompt_service.SYSTEM_PROMPT,
-        )
 
     assistant_message = ChatMessage(
         id=str(uuid4()),
         role="assistant",
-        content=answer,
+        content=agent_response.answer,
         created_at=datetime.now(UTC),
+        metadata={
+            "agent_name": agent_response.agent_name,
+            "sources": [s.model_dump() for s in agent_response.sources],
+        },
     )
 
     if document is None:

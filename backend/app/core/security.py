@@ -24,7 +24,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(user_id: str, email: str, role: str) -> str:
-    """Create a signed JWT access token for an authenticated user."""
+    """Create a signed access token for an authenticated user."""
     expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
@@ -42,18 +42,16 @@ def create_access_token(user_id: str, email: str, role: str) -> str:
 
 
 def decode_access_token(token: str) -> TokenData | None:
-    """Validate an access token and return its application claims."""
+    """Return validated token claims, or None when the token is invalid."""
     try:
         payload = jwt.decode(
             token,
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-        user_id = payload.get("sub")
-        email = payload.get("email")
-        role = payload.get("role")
-        if not all([user_id, email, role]):
-            return None
-        return TokenData(user_id=user_id, email=email, role=role)
-    except (JWTError, ValueError):
+
+        return TokenData(
+            user_id=payload["sub"], email=payload["email"], role=payload["role"]
+        )
+    except (JWTError, KeyError, ValueError):
         return None

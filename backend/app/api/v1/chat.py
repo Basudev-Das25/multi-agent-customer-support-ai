@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_current_user
+from app.core.exception import ConversationNotFoundError
 from app.models.user import UserDocument
 from app.schemas.chat import (
     ConversationResponse,
@@ -44,6 +45,17 @@ async def create_message(
     request: SendMessageRequest,
     current_user: Annotated[UserDocument, Depends(get_current_user)],
 ) -> ConversationResponse:
-    return await send_message(
-        current_user.id or "", request.content, request.conversation_id
-    )
+    try:
+        return await send_message(
+            current_user.id or "", request.content, request.conversation_id
+        )
+    except ConversationNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The AI assistant is temporarily unavailable. Please try again.",
+        ) from exc

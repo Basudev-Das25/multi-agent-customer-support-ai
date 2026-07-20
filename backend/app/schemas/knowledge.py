@@ -24,6 +24,34 @@ class KnowledgeDocument(BaseSchema):
 
     status: str = "uploaded"
 
+    source: str = "upload"
+
+    uploaded_at: datetime
+
+
+class KnowledgeDocumentResponse(BaseSchema):
+    """Public DTO returned to API consumers — excludes internal paths."""
+
+    id: str
+
+    user_id: str
+
+    filename: str
+
+    original_filename: str
+
+    content_type: str
+
+    file_size: int
+
+    page_count: int
+
+    chunk_count: int
+
+    status: str
+
+    source: str
+
     uploaded_at: datetime
 
 

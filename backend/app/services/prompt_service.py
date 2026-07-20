@@ -32,31 +32,43 @@ Rules:
         Build the complete prompt sent to the LLM.
         """
 
-        prompt = [
-            self.SYSTEM_PROMPT,
+        sections = [
+            (
+                "Use ONLY the information between <context> "
+                "and </context> tags below to answer the "
+                "user's question."
+            ),
+            (
+                "If the context contains relevant information, "
+                "you MUST reference it in your answer."
+            ),
+            (
+                "Never say you cannot find information if "
+                "the context contains relevant material."
+            ),
             "",
-            "### Knowledge Base",
-            context or "No relevant context found.",
+            "<context>",
+            context if context.strip() else "No relevant context found.",
+            "</context>",
         ]
 
         if history:
-            prompt.append("")
-            prompt.append("### Conversation History")
-
+            sections.append("")
+            sections.append("### Conversation History")
             for message in history[-10:]:
-                prompt.append(f"{message.role.capitalize()}: {message.content}")
+                sections.append(f"{message.role.capitalize()}: {message.content}")
 
-        prompt.extend(
+        sections.extend(
             [
                 "",
                 "### User Question",
                 question,
                 "",
-                "### Assistant",
+                "### Answer (use the context above)",
             ]
         )
 
-        return "\n".join(prompt)
+        return "\n".join(sections)
 
 
 prompt_service = PromptService()

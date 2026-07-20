@@ -14,12 +14,16 @@ def test_vector_search(tmp_path):
         "Password reset",
     ]
 
+    document_id = str(uuid.uuid4())
     ids = [str(uuid.uuid4()) for _ in texts]
+    vector_references = [
+        {"document_id": document_id, "chunk_id": chunk_id} for chunk_id in ids
+    ]
 
     embeddings = embedding_service.embed_batch(texts)
 
     vector_service.rebuild(
-        ids,
+        vector_references,
         embeddings,
     )
 
@@ -32,6 +36,7 @@ def test_vector_search(tmp_path):
 
     assert len(results) == 2
 
+    assert results[0].document_id == document_id
     assert results[0].chunk_id in ids
 
     assert isinstance(results[0].score, float)

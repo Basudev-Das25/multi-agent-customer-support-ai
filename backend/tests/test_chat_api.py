@@ -16,7 +16,12 @@ def _register_and_login(client) -> str:
     return login.json()["access_token"]
 
 
-def test_send_message_and_read_conversation(client):
+def test_send_message_and_read_conversation(client, monkeypatch):
+    async def respond(**_: object) -> str:
+        return "I can help with your invoice."
+
+    monkeypatch.setattr("app.services.chat_service.agent_service.respond", respond)
+
     token = _register_and_login(client)
     headers = {"Authorization": f"Bearer {token}"}
 

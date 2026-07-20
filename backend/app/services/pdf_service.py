@@ -48,18 +48,5 @@ class PDFService:
 
         return pages
 
-    def page_count(
-        self,
-        path: Path,
-    ) -> int:
-
-        document = fitz.open(path)
-
-        try:
-            return document.page_count
-
-        finally:
-            document.close()
-
 
 pdf_service = PDFService()
