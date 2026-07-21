@@ -3,12 +3,20 @@
 import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 
+import {
+    ClockIcon,
+    GearIcon,
+    LogOutIcon,
+    MessageSquareIcon,
+    PlusIcon,
+    SparklesIcon,
+} from "@/components/shared/Icons";
 import type { ConversationSummary } from "@/types/chat";
 
 interface ConversationSidebarProps {
     conversations: ConversationSummary[];
     activeConversationId: string | null;
-    onSelectConversation: (conversationId: string) => void;
+    onSelectConversation: (id: string) => void;
     onNewConversation: () => void;
     onLogout: () => void;
     isLoading?: boolean;
@@ -18,17 +26,14 @@ interface ConversationSidebarProps {
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton placeholder (shimmer)
+// Skeleton
 // ---------------------------------------------------------------------------
 
 function Skeleton() {
     return (
         <div className="space-y-2 px-1">
             {[1, 2, 3].map((n) => (
-                <div
-                    key={n}
-                    className="h-16 shimmer rounded-xl"
-                />
+                <div key={n} className="h-16 shimmer rounded-xl" />
             ))}
         </div>
     );
@@ -81,12 +86,10 @@ function ConversationItem({
                 {conversation.title}
             </p>
             <p className="mt-1 text-xs opacity-65">
-                {new Date(
-                    conversation.updated_at,
-                ).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                })}
+                {new Date(conversation.updated_at).toLocaleDateString(
+                    undefined,
+                    { month: "short", day: "numeric" },
+                )}
             </p>
         </button>
     );
@@ -109,11 +112,9 @@ export default function ConversationSidebar({
 }: ConversationSidebarProps) {
     const asideRef = useRef<HTMLElement>(null);
 
-    // Close sidebar on Escape key
     useEffect(() => {
         const el = asideRef.current;
         if (!el) return;
-
         function handleKey(event: KeyboardEvent) {
             if (event.key === "Escape" && onClose) onClose();
         }
@@ -121,22 +122,16 @@ export default function ConversationSidebar({
         return () => el.removeEventListener("keydown", handleKey);
     }, [onClose]);
 
-    // Focus trap: focus first focusable element when opened
     const newBtnRef = useRef<HTMLButtonElement>(null);
     useEffect(() => {
         if (open) {
-            // Small delay so the transition completes
-            const t = setTimeout(
-                () => newBtnRef.current?.focus(),
-                100,
-            );
+            const t = setTimeout(() => newBtnRef.current?.focus(), 100);
             return () => clearTimeout(t);
         }
     }, [open]);
 
     return (
         <>
-            {/* Mobile overlay */}
             {open && onClose && (
                 <div
                     className="fixed inset-0 z-30 bg-black/50 animate-overlay-in md:hidden"
@@ -160,13 +155,18 @@ export default function ConversationSidebar({
                 {/* Header */}
                 <div className="border-b border-white/[0.08] p-5">
                     <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">
-                                Support AI
-                            </p>
-                            <h1 className="mt-1 text-xl font-semibold text-foreground">
-                                Workspace
-                            </h1>
+                        <div className="flex items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-muted text-accent shadow-[0_0_20px_rgba(167,139,250,0.15)]">
+                                <SparklesIcon className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">
+                                    Support AI
+                                </p>
+                                <h1 className="text-xl font-semibold text-foreground">
+                                    Workspace
+                                </h1>
+                            </div>
                         </div>
                         <span className="animate-pulse-soft rounded-full border border-accent/20 bg-accent-muted px-2.5 py-1 text-xs font-medium text-accent">
                             Online
@@ -183,9 +183,7 @@ export default function ConversationSidebar({
                         aria-label="Start new conversation"
                         className="btn-press mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-background transition-all duration-200 hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(167,139,250,0.3)] focus:outline-none focus:ring-2 focus:ring-accent-hover active:scale-[0.97]"
                     >
-                        <span className="text-lg leading-none" aria-hidden="true">
-                            +
-                        </span>
+                        <PlusIcon className="h-4 w-4" />
                         New conversation
                     </button>
                 </div>
@@ -198,9 +196,7 @@ export default function ConversationSidebar({
                             onClick={onClose}
                             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground-muted transition-all duration-200 hover:bg-surface-hover hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/60"
                         >
-                            <span className="text-base" aria-hidden="true">
-                                ⚙
-                            </span>
+                            <GearIcon className="h-4 w-4" />
                             Knowledge Base
                         </Link>
                     </div>
@@ -212,26 +208,32 @@ export default function ConversationSidebar({
                     role="list"
                     aria-label="Conversation history"
                 >
-                    <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-foreground-dim">
-                        History
-                    </p>
+                    <div className="flex items-center gap-1.5 px-2 pb-2">
+                        <ClockIcon className="h-3 w-3 text-foreground-dim" />
+                        <p className="text-xs font-semibold uppercase tracking-wider text-foreground-dim">
+                            History
+                        </p>
+                    </div>
 
                     {isLoading ? (
                         <Skeleton />
                     ) : conversations.length === 0 ? (
-                        <p className="px-2 py-8 text-center text-sm text-foreground-dim">
-                            Your previous conversations will appear
-                            here.
-                        </p>
+                        <div className="flex flex-col items-center py-12 text-center">
+                            <MessageSquareIcon className="h-8 w-8 text-foreground-dim mb-3" />
+                            <p className="text-sm text-foreground-dim">
+                                No conversations yet
+                            </p>
+                            <p className="mt-1 text-xs text-foreground-dim/60">
+                                Start a new one above
+                            </p>
+                        </div>
                     ) : (
                         <div className="space-y-1 stagger-list">
                             {conversations.map((c) => (
                                 <ConversationItem
                                     key={c.id}
                                     conversation={c}
-                                    isActive={
-                                        activeConversationId === c.id
-                                    }
+                                    isActive={activeConversationId === c.id}
                                     onSelect={onSelectConversation}
                                     onClose={onClose}
                                 />
@@ -246,8 +248,9 @@ export default function ConversationSidebar({
                         type="button"
                         onClick={onLogout}
                         aria-label="Sign out"
-                        className="btn-press w-full rounded-xl border border-white/10 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-all duration-200 hover:border-danger/60 hover:bg-danger-muted hover:text-danger focus:outline-none focus:ring-2 focus:ring-danger/60 active:scale-[0.97]"
+                        className="btn-press flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-all duration-200 hover:border-danger/60 hover:bg-danger-muted hover:text-danger focus:outline-none focus:ring-2 focus:ring-danger/60 active:scale-[0.97]"
                     >
+                        <LogOutIcon className="h-4 w-4" />
                         Sign out
                     </button>
                 </div>

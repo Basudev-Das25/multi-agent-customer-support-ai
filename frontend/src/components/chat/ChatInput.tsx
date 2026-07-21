@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { LoaderIcon, PaperAirplaneIcon } from "@/components/shared/Icons";
 
 interface ChatInputProps {
     onSend: (message: string) => Promise<void>;
@@ -12,7 +13,6 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     const [sending, setSending] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Auto-resize textarea
     useEffect(() => {
         const el = textareaRef.current;
         if (el) {
@@ -31,7 +31,6 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                 setSending(true);
                 await onSend(content);
                 setMessage("");
-                // Reset textarea height
                 if (textareaRef.current) {
                     textareaRef.current.style.height = "auto";
                 }
@@ -52,6 +51,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         [],
     );
 
+    const canSend = !disabled && !sending && message.trim();
+
     return (
         <form
             onSubmit={handleSubmit}
@@ -61,9 +62,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                 <textarea
                     ref={textareaRef}
                     value={message}
-                    onChange={(event) =>
-                        setMessage(event.target.value)
-                    }
+                    onChange={(event) => setMessage(event.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Message Support AI..."
                     rows={1}
@@ -74,13 +73,15 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
 
                 <button
                     type="submit"
-                    disabled={
-                        disabled || sending || !message.trim()
-                    }
+                    disabled={!canSend}
                     aria-label="Send message"
-                    className="btn-press rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-background transition-all duration-200 hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(167,139,250,0.3)] disabled:cursor-not-allowed disabled:opacity-40 active:scale-95"
+                    className="btn-press flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-background transition-all duration-200 hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(167,139,250,0.3)] disabled:cursor-not-allowed disabled:opacity-40 active:scale-90"
                 >
-                    {sending ? "Sending" : "Send"}
+                    {sending ? (
+                        <LoaderIcon className="h-4 w-4" />
+                    ) : (
+                        <PaperAirplaneIcon className="h-4 w-4" />
+                    )}
                 </button>
             </div>
 

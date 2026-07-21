@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SparklesIcon } from "@/components/shared/Icons";
 
 import { parseApiError } from "@/lib/api-helpers";
 import { getCurrentUser } from "@/services/auth";
@@ -138,21 +139,11 @@ export default function DashboardPage() {
                         aria-label="Open conversation list"
                         className="rounded-lg p-2 text-foreground-muted transition-all duration-200 hover:bg-surface-hover hover:text-foreground"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M4 6h16M4 12h16M4 18h16"
-                            />
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-
+                    <SparklesIcon className="h-4 w-4 text-accent" />
                     <p className="text-sm font-semibold text-foreground">
                         {conversation?.title ?? "New conversation"}
                     </p>

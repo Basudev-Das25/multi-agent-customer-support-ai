@@ -2,7 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "@/components/shared/Markdown";
-import type { ChatMessage, ChatMessageMetadata, Conversation, SourceInfo } from "@/types/chat";
+import {
+    BotIcon,
+    ChevronDownIcon,
+    CopyIcon,
+    CheckIcon,
+    LightbulbIcon,
+    SparklesIcon,
+    UserIcon,
+} from "@/components/shared/Icons";
+import type {
+    ChatMessage,
+    ChatMessageMetadata,
+    Conversation,
+} from "@/types/chat";
 
 interface ChatWindowProps {
     conversation: Conversation | null;
@@ -49,7 +62,7 @@ function CopyButton({ text }: { text: string }) {
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
         } catch {
-            // Clipboard not available
+            /* clipboard not available */
         }
     }, [text]);
 
@@ -60,16 +73,7 @@ function CopyButton({ text }: { text: string }) {
             aria-label="Copy message"
             className="rounded-md p-1.5 text-foreground-dim opacity-0 transition-all duration-200 group-hover/message:opacity-100 hover:bg-surface-hover hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-accent/60"
         >
-            {copied ? (
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-            ) : (
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                </svg>
-            )}
+            {copied ? <CheckIcon /> : <CopyIcon />}
         </button>
     );
 }
@@ -81,14 +85,18 @@ function CopyButton({ text }: { text: string }) {
 function Avatar({ role }: { role: "user" | "assistant" }) {
     return (
         <div
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
                 role === "user"
                     ? "bg-accent-muted text-accent"
                     : "bg-surface text-foreground-muted"
             }`}
             aria-hidden="true"
         >
-            {role === "user" ? "U" : "AI"}
+            {role === "user" ? (
+                <UserIcon className="h-4 w-4" />
+            ) : (
+                <BotIcon className="h-4 w-4" />
+            )}
         </div>
     );
 }
@@ -104,17 +112,14 @@ function Timestamp({ iso }: { iso: string }) {
         minute: "2-digit",
     });
     return (
-        <time
-            dateTime={iso}
-            className="text-[11px] text-foreground-dim"
-        >
+        <time dateTime={iso} className="text-[11px] text-foreground-dim">
             {label}
         </time>
     );
 }
 
 // ---------------------------------------------------------------------------
-// Loading dots (typing animation — smoother pulse)
+// Loading dots
 // ---------------------------------------------------------------------------
 
 function LoadingDots() {
@@ -139,7 +144,6 @@ function SourcesPanel({ metadata }: { metadata: ChatMessageMetadata }) {
 
     return (
         <div className="mt-3 border-t border-white/[0.06] pt-3 animate-fade-in-up">
-            {/* Agent badge + source count */}
             <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
@@ -153,18 +157,13 @@ function SourcesPanel({ metadata }: { metadata: ChatMessageMetadata }) {
                 <span className="text-[11px] text-foreground-dim">
                     {sources.length} source{sources.length !== 1 ? "s" : ""}
                 </span>
-                <svg
-                    className={`ml-auto h-3 w-3 text-foreground-dim transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDownIcon
+                    className={`ml-auto transition-transform duration-200 ${
+                        expanded ? "rotate-180" : ""
+                    }`}
+                />
             </button>
 
-            {/* Expanded source list */}
             {expanded && (
                 <div className="mt-2 space-y-2 stagger-list">
                     {sources.map((source) => (
@@ -177,17 +176,16 @@ function SourcesPanel({ metadata }: { metadata: ChatMessageMetadata }) {
 }
 
 // ---------------------------------------------------------------------------
-// Source card (individual source)
+// Source card
 // ---------------------------------------------------------------------------
 
-function SourceCard({ source }: { source: SourceInfo }) {
+function SourceCard({
+    source,
+}: {
+    source: { document_name: string; text_preview: string; score: number };
+}) {
     const [showFull, setShowFull] = useState(false);
-
-    // Clean up document name — extract the meaningful part
-    const displayName = source.document_name
-        .split(" / ")
-        .pop() ?? source.document_name;
-
+    const displayName = source.document_name.split(" / ").pop() ?? source.document_name;
     const dataset = source.document_name.split(" / ")[0] ?? "";
 
     return (
@@ -198,20 +196,20 @@ function SourceCard({ source }: { source: SourceInfo }) {
                         {displayName}
                     </p>
                     {dataset && (
-                        <p className="text-[10px] text-foreground-dim">
-                            {dataset}
-                        </p>
+                        <p className="text-[10px] text-foreground-dim">{dataset}</p>
                     )}
                 </div>
                 <span className="shrink-0 rounded-full bg-accent-muted px-1.5 py-0.5 text-[9px] font-semibold text-accent">
                     {source.score.toFixed(2)}
                 </span>
             </div>
-
-            <p className={`mt-1 text-[11px] leading-4 text-foreground-muted ${showFull ? "" : "line-clamp-2"}`}>
+            <p
+                className={`mt-1 text-[11px] leading-4 text-foreground-muted ${
+                    showFull ? "" : "line-clamp-2"
+                }`}
+            >
                 {source.text_preview}
             </p>
-
             {source.text_preview.length > 100 && (
                 <button
                     type="button"
@@ -226,6 +224,61 @@ function SourceCard({ source }: { source: SourceInfo }) {
 }
 
 // ---------------------------------------------------------------------------
+// Suggested prompt chips
+// ---------------------------------------------------------------------------
+
+const SUGGESTED_PROMPTS = [
+    { icon: "💳", label: "How do I get a refund?" },
+    { icon: "🔧", label: "I'm having login issues" },
+    { icon: "📦", label: "Tell me about your products" },
+    { icon: "📋", label: "What's your refund policy?" },
+];
+
+function SuggestedPrompts({
+    onSelect,
+}: {
+    onSelect: (prompt: string) => void;
+}) {
+    return (
+        <div className="mt-6 flex flex-wrap justify-center gap-2 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+            {SUGGESTED_PROMPTS.map((prompt) => (
+                <button
+                    key={prompt.label}
+                    type="button"
+                    onClick={() => onSelect(prompt.label)}
+                    className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-foreground-muted transition-all duration-200 hover:border-accent/30 hover:bg-accent-muted hover:text-foreground hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <span>{prompt.icon}</span>
+                    <span>{prompt.label}</span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+function EmptyState({ onSelectPrompt }: { onSelectPrompt?: (p: string) => void }) {
+    return (
+        <div className="my-auto pt-20 text-center animate-fade-in-up">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-muted text-accent animate-float shadow-[0_0_30px_rgba(167,139,250,0.2)]">
+                <SparklesIcon className="h-8 w-8" />
+            </div>
+            <h2 className="mt-5 text-2xl font-semibold text-foreground">
+                How can we help?
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-foreground-muted">
+                Ask about billing, product features, technical issues,
+                complaints, or company policies.
+            </p>
+            {onSelectPrompt && <SuggestedPrompts onSelect={onSelectPrompt} />}
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Message bubble
 // ---------------------------------------------------------------------------
 
@@ -234,7 +287,9 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
     return (
         <article
-            className={`group/message animate-message-in flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
+            className={`group/message animate-message-in flex gap-3 ${
+                isUser ? "justify-end" : "justify-start"
+            }`}
             aria-label={`${isUser ? "Your" : "Support AI"} message`}
         >
             {!isUser && <Avatar role="assistant" />}
@@ -246,7 +301,6 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                         : "rounded-bl-md border border-white/10 bg-surface/60 backdrop-blur-sm text-foreground"
                 }`}
             >
-                {/* Header row */}
                 <div className="mb-1 flex items-center justify-between gap-3">
                     <p className="text-[11px] font-bold uppercase tracking-wider opacity-60">
                         {isUser ? "You" : "Support AI"}
@@ -257,7 +311,6 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                     </div>
                 </div>
 
-                {/* Content */}
                 {isUser ? (
                     <p className="whitespace-pre-wrap text-sm leading-6">
                         {message.content}
@@ -266,7 +319,6 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                     <Markdown content={message.content} />
                 )}
 
-                {/* Sources panel (assistant messages only) */}
                 {!isUser && message.metadata && (
                     <SourcesPanel metadata={message.metadata} />
                 )}
@@ -274,27 +326,6 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
             {isUser && <Avatar role="user" />}
         </article>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Empty state
-// ---------------------------------------------------------------------------
-
-function EmptyState() {
-    return (
-        <div className="my-auto pt-20 text-center animate-fade-in-up">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-muted text-2xl text-accent animate-float">
-                ✦
-            </div>
-            <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                How can we help?
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-foreground-muted">
-                Ask about billing, product features, technical issues,
-                complaints, or company policies.
-            </p>
-        </div>
     );
 }
 
@@ -311,18 +342,14 @@ export default function ChatWindow({
     const bottomRef = useRef<HTMLDivElement>(null);
     const [userScrolledUp, setUserScrolledUp] = useState(false);
 
-    // Detect when user scrolls away from bottom
     const handleScroll = useCallback(() => {
         const el = containerRef.current;
         if (!el) return;
-        const threshold = 60;
         const atBottom =
-            el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+            el.scrollHeight - el.scrollTop - el.clientHeight < 60;
         setUserScrolledUp(!atBottom);
     }, []);
 
-    // Auto-scroll on new messages unless user scrolled up.
-    // Also scroll to bottom when a new message is being sent (isLoading toggles).
     useEffect(() => {
         if (!userScrolledUp || isLoading) {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -339,9 +366,12 @@ export default function ChatWindow({
         >
             {/* Header */}
             <header className="glass-light border-b border-white/[0.08] px-5 py-4 backdrop-blur md:px-8 animate-fade-in">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                    Customer support assistant
-                </p>
+                <div className="flex items-center gap-2">
+                    <SparklesIcon className="h-4 w-4 text-accent" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                        Customer support assistant
+                    </p>
+                </div>
                 <h2 className="mt-1 truncate text-lg font-semibold text-foreground">
                     {conversation?.title ?? "New conversation"}
                 </h2>
@@ -357,7 +387,26 @@ export default function ChatWindow({
                 aria-live="polite"
             >
                 <div className="mx-auto flex max-w-4xl flex-col gap-5">
-                    {!hasMessages && !isLoading && <EmptyState />}
+                    {!hasMessages && !isLoading && (
+                        <EmptyState
+                            onSelectPrompt={(p) => {
+                                const textarea = document.querySelector(
+                                    "textarea[aria-label='Chat message']",
+                                ) as HTMLTextAreaElement | null;
+                                if (textarea) {
+                                    const nativeSetter =
+                                        Object.getOwnPropertyDescriptor(
+                                            window.HTMLTextAreaElement.prototype,
+                                            "value",
+                                        )?.set;
+                                    nativeSetter?.call(textarea, p);
+                                    textarea.dispatchEvent(
+                                        new Event("input", { bubbles: true }),
+                                    );
+                                }
+                            }}
+                        />
+                    )}
 
                     {hasMessages &&
                         messages.map((message) => (
@@ -367,7 +416,6 @@ export default function ChatWindow({
                             />
                         ))}
 
-                    {/* Typing indicator */}
                     {isLoading && (
                         <div className="flex justify-start animate-message-in">
                             <div className="flex items-center gap-2">
@@ -379,7 +427,6 @@ export default function ChatWindow({
                         </div>
                     )}
 
-                    {/* Error banner */}
                     {error && (
                         <div
                             className="animate-fade-in-up rounded-xl border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger"
@@ -389,10 +436,8 @@ export default function ChatWindow({
                         </div>
                     )}
 
-                    {/* Scroll anchor */}
                     <div ref={bottomRef} />
 
-                    {/* Scroll-to-bottom hint */}
                     {userScrolledUp && hasMessages && (
                         <div className="flex justify-center animate-fade-in-up">
                             <button
